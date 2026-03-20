@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// ✅ Production-ready API — uses live backend URL from .env
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+// ✅ Uses env variable if set, otherwise falls back to live backend URL
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://staysphere-pro-backend.onrender.com/api';
 
 const api = axios.create({
     baseURL: API_URL,
