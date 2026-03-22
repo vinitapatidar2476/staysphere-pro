@@ -12,8 +12,9 @@ const bookingSchema = new mongoose.Schema({
     couponCode: { type: String },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
     bookingStatus: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
-    razorpayOrderId: { type: String },
-    razorpayPaymentId: { type: String }
+    stripePaymentIntentId: { type: String },
+    stripePaymentMethodId: { type: String },
+    paymentMethod: { type: String, default: 'stripe' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);
