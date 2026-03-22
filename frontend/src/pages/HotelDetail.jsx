@@ -18,7 +18,10 @@ const HotelDetail = () => {
         roomTypeId: '', checkInDate: '', checkOutDate: '', guests: 1, couponCode: ''
     });
     const [bookingLoading, setBookingLoading] = useState(false);
+    const [couponLoading, setCouponLoading] = useState(false);
     const [discountActive, setDiscountActive] = useState(0);
+    const [couponError, setCouponError] = useState('');
+    const [couponSuccess, setCouponSuccess] = useState('');
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -27,7 +30,7 @@ const HotelDetail = () => {
                 // API returns { hotel: {...}, rooms: [...] }
                 const hotelData = res.data.hotel;
                 const roomsData = res.data.rooms;
-                
+
                 setHotel(hotelData);
                 // We'll treat roomsData as hotel.roomTypes internally for the UI
                 if (roomsData?.length > 0) {
@@ -46,6 +49,25 @@ const HotelDetail = () => {
         fetchDetail();
     }, [id]);
 
+    const handleApplyCoupon = async () => {
+        if (!bookingDetails.couponCode) return;
+        setCouponLoading(true);
+        setCouponError('');
+        setCouponSuccess('');
+        try {
+            const res = await api.post('/coupons/validate', { code: bookingDetails.couponCode.toUpperCase() });
+            if (res.data.success) {
+                setDiscountActive(res.data.discountPercentage);
+                setCouponSuccess(`AUTHORIZED: ${res.data.discountPercentage}% REDUCTION APPLIED.`);
+            }
+        } catch (err) {
+            setCouponError(err.response?.data?.message || 'AUTHORIZATION FAILED.');
+            setDiscountActive(0);
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
     const handleBookNow = async () => {
         if (!user) return navigate('/login');
         if (!bookingDetails.roomTypeId || !bookingDetails.checkInDate || !bookingDetails.checkOutDate) {
@@ -55,10 +77,16 @@ const HotelDetail = () => {
         setBookingLoading(true);
         try {
             const selectedRoom = rooms.find(r => r._id === bookingDetails.roomTypeId);
-            const nights = (new Date(bookingDetails.checkOutDate) - new Date(bookingDetails.checkInDate)) / (1000 * 60 * 60 * 24);
-            if (nights <= 0) throw new Error("TIMELINE ERROR: Check-out must follow check-in node.");
-            
-            const totalAmount = selectedRoom.price * nights;
+            const nights = Math.floor((new Date(bookingDetails.checkOutDate) - new Date(bookingDetails.checkInDate)) / (1000 * 60 * 60 * 24));
+
+            if (isNaN(nights) || nights <= 0) {
+                alert("TIMELINE ERROR: Check-out must follow check-in. Minimum stay is 1 node (night).");
+                setBookingLoading(false);
+                return;
+            }
+
+            const baseAmount = selectedRoom.price * nights;
+            const totalAmount = baseAmount - (baseAmount * (discountActive / 100));
 
             const res = await api.post('/bookings/create-payment-intent', {
                 hotelId: id,
@@ -95,7 +123,7 @@ const HotelDetail = () => {
     );
 
     const selectedRoom = rooms?.find(r => r._id === bookingDetails.roomTypeId);
-    
+
     const getAmenityIcon = (name) => {
         const lowerName = name.toLowerCase();
         if (lowerName.includes('wifi')) return <Wifi size={18} />;
@@ -115,10 +143,7 @@ const HotelDetail = () => {
                     <button onClick={() => navigate(-1)} className="btn-outline-premium rounded-pill px-4 py-2 border-primary border-opacity-20 d-flex align-items-center gap-2 hover-glow transition-all">
                         <ArrowLeft size={16} /> ABORT DOSSIER
                     </button>
-                    <div className="d-flex align-items-center gap-2">
-                        <button className="social-pill rounded-full bg-white bg-opacity-5 p-3 hover-text-primary transition-all border-0"><Share2 size={18} /></button>
-                        <button className="social-pill rounded-full bg-white bg-opacity-5 p-3 hover-text-danger transition-all border-0"><Heart size={18} /></button>
-                    </div>
+
                 </div>
 
                 <Row className="g-5">
@@ -168,7 +193,7 @@ const HotelDetail = () => {
                                     <span className="text-secondary x-small fw-800 ls-1 uppercase opacity-40">Intelligence Overview</span>
                                 </div>
                             </div>
-                            
+
                             <p className="text-white opacity-80 fs-5 lh-lg mb-5 font-outfit" style={{ fontWeight: '400' }}>
                                 {hotel.description || 'Elevating the standard of high-vibe living nodes. This asset marks a strategic point in the global stay network, optimized for security, privacy, and supreme comfort.'}
                             </p>
@@ -178,7 +203,7 @@ const HotelDetail = () => {
                                     <div className="d-flex flex-column">
                                         <div className="text-secondary x-small fw-900 ls-2 uppercase mb-2">Sync Status</div>
                                         <div className="d-flex align-items-center gap-2 text-success fw-900 fs-5">
-                                            <div className="bg-success rounded-full" style={{width: '10px', height: '10px'}}></div> LIVE FEED
+                                            <div className="bg-success rounded-full" style={{ width: '10px', height: '10px' }}></div> LIVE FEED
                                         </div>
                                     </div>
                                 </Col>
@@ -237,8 +262,8 @@ const HotelDetail = () => {
                                 <Form className="d-flex flex-column gap-4">
                                     <Form.Group>
                                         <label className="text-white x-small fw-900 ls-2 uppercase ms-1 mb-3">Asset Tier</label>
-                                        <Form.Select 
-                                            value={bookingDetails.roomTypeId} onChange={(e) => setBookingDetails({...bookingDetails, roomTypeId: e.target.value})}
+                                        <Form.Select
+                                            value={bookingDetails.roomTypeId} onChange={(e) => setBookingDetails({ ...bookingDetails, roomTypeId: e.target.value })}
                                             className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fs-6 fw-800 focus-within-primary"
                                             style={{ background: 'rgba(15, 23, 42, 0.95)' }}
                                         >
@@ -250,28 +275,43 @@ const HotelDetail = () => {
                                         <Col xs={6}>
                                             <Form.Group>
                                                 <label className="text-white x-small fw-900 ls-2 uppercase ms-1 mb-3">Sync Start</label>
-                                                <Form.Control type="date" value={bookingDetails.checkInDate} onChange={(e) => setBookingDetails({...bookingDetails, checkInDate: e.target.value})} className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fw-800" style={{ background: 'rgba(15, 23, 42, 0.95)' }} />
+                                                <Form.Control type="date" value={bookingDetails.checkInDate} onChange={(e) => setBookingDetails({ ...bookingDetails, checkInDate: e.target.value })} className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fw-800" style={{ background: 'rgba(15, 23, 42, 0.95)' }} />
                                             </Form.Group>
                                         </Col>
                                         <Col xs={6}>
                                             <Form.Group>
                                                 <label className="text-white x-small fw-900 ls-2 uppercase ms-1 mb-3">Sync End</label>
-                                                <Form.Control type="date" value={bookingDetails.checkOutDate} onChange={(e) => setBookingDetails({...bookingDetails, checkOutDate: e.target.value})} className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fw-800" style={{ background: 'rgba(15, 23, 42, 0.95)' }} />
+                                                <Form.Control type="date" value={bookingDetails.checkOutDate} onChange={(e) => setBookingDetails({ ...bookingDetails, checkOutDate: e.target.value })} className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fw-800" style={{ background: 'rgba(15, 23, 42, 0.95)' }} />
                                             </Form.Group>
                                         </Col>
                                     </Row>
 
                                     <Form.Group className="mt-4">
                                         <label className="text-white x-small fw-900 ls-2 uppercase ms-1 mb-3">Coupon Authorization</label>
-                                        <Form.Control type="text" placeholder="SEC-XXXX-XXXX" value={bookingDetails.couponCode} onChange={(e) => setBookingDetails({...bookingDetails, couponCode: e.target.value})} className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fw-800" style={{ background: 'rgba(15, 23, 42, 0.95)' }} />
+                                        <div className="d-flex gap-2">
+                                            <Form.Control type="text" placeholder="SEC-XXXX-XXXX" value={bookingDetails.couponCode} onChange={(e) => setBookingDetails({ ...bookingDetails, couponCode: e.target.value })} className="border-white border-opacity-10 p-3 text-white shadow-none rounded-4 fw-800" style={{ background: 'rgba(15, 23, 42, 0.95)' }} />
+                                            <Button variant="outline-primary" onClick={handleApplyCoupon} disabled={couponLoading} className="rounded-4 px-4 fw-900 ls-1">
+                                                {couponLoading ? <Spinner size="sm" /> : 'APPLY'}
+                                            </Button>
+                                        </div>
+                                        {couponError && <div className="text-danger x-small fw-900 mt-2 ms-1 ls-1">{couponError}</div>}
+                                        {couponSuccess && <div className="text-success x-small fw-900 mt-2 ms-1 ls-1">{couponSuccess}</div>}
+                                        <div className="mt-3 p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5">
+                                            <div className="text-secondary x-small fw-900 ls-1 uppercase mb-1 opacity-50 text-center">Active Sector Codes</div>
+                                            <div className="d-flex justify-content-center gap-3">
+                                                <Badge bg="dark" className="border border-white border-opacity-10 px-2 py-1 x-small fw-bold opacity-75">LUXURY25</Badge>
+                                                <Badge bg="dark" className="border border-white border-opacity-10 px-2 py-1 x-small fw-bold opacity-75">NODE50</Badge>
+                                                <Badge bg="dark" className="border border-white border-opacity-10 px-2 py-1 x-small fw-bold opacity-75">WELCOME10</Badge>
+                                            </div>
+                                        </div>
                                     </Form.Group>
 
                                     <Form.Group>
                                         <label className="text-white x-small fw-900 ls-2 uppercase ms-1 mb-3">Personnel Capacity</label>
                                         <div className="d-flex align-items-center glass-card bg-white bg-opacity-5 rounded-4 p-1">
-                                            <Button variant="link" className="text-white hover-bg-primary hover-bg-opacity-20 p-3 border-0 transition-all rounded-4" onClick={() => setBookingDetails({...bookingDetails, guests: Math.max(1, bookingDetails.guests - 1)})} disabled={bookingDetails.guests <= 1}>-</Button>
+                                            <Button variant="link" className="text-white hover-bg-primary hover-bg-opacity-20 p-3 border-0 transition-all rounded-4" onClick={() => setBookingDetails({ ...bookingDetails, guests: Math.max(1, bookingDetails.guests - 1) })} disabled={bookingDetails.guests <= 1}>-</Button>
                                             <span className="flex-fill text-center fw-900 fs-5 text-white">{bookingDetails.guests}</span>
-                                            <Button variant="link" className="text-white hover-bg-primary hover-bg-opacity-20 p-3 border-0 transition-all rounded-4" onClick={() => setBookingDetails({...bookingDetails, guests: Math.min(10, bookingDetails.guests + 1)})}>+</Button>
+                                            <Button variant="link" className="text-white hover-bg-primary hover-bg-opacity-20 p-3 border-0 transition-all rounded-4" onClick={() => setBookingDetails({ ...bookingDetails, guests: Math.min(10, bookingDetails.guests + 1) })}>+</Button>
                                         </div>
                                     </Form.Group>
 
@@ -284,8 +324,8 @@ const HotelDetail = () => {
                                             <span className="text-secondary small fw-bold uppercase">Network Fee</span>
                                             <span className="text-white fw-900">INCLUDED</span>
                                         </div>
-                                        
-                                        <Button 
+
+                                        <Button
                                             className="btn-premium w-100 py-4 rounded-pill shadow-22xl transform transition-all fs-5 ls-wide group"
                                             disabled={bookingLoading}
                                             onClick={handleBookNow}
@@ -294,7 +334,7 @@ const HotelDetail = () => {
                                         </Button>
                                     </div>
                                 </Form>
-                                
+
                                 <p className="text-center x-small text-secondary fw-bold mt-4 opacity-40 uppercase ls-1 ls-wide">100% SECURE RESERVATION CHANNEL</p>
                             </Card>
                         </div>

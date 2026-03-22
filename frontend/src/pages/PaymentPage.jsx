@@ -130,7 +130,7 @@ const PaymentPage = () => {
                                                     paymentIntentId={state.paymentIntentId}
                                                     onSuccess={(bookingId) => {
                                                         console.log("✅ Booking Success Event Emitted:", bookingId);
-                                                        navigate("/my-bookings");
+                                                        navigate("/booking-success", { state: { bookingId } });
                                                     }}
                                                     onError={(err) => {
                                                         console.error("❌ Payment Submission Error Received:", err);

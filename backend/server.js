@@ -10,6 +10,9 @@ app.use(cors({
     origin: [
         "https://staysphere-pro-1.onrender.com",
         "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
         "http://localhost:3000"
     ],
     credentials: true,
@@ -25,12 +28,14 @@ const hotelRoutes = require('./routes/hotels');
 const roomRoutes = require('./routes/rooms');
 const bookingRoutes = require('./routes/bookings');
 const reviewRoutes = require('./routes/reviews');
+const couponRoutes = require('./routes/coupons');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/hotels', hotelRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/coupons', couponRoutes);
 
 const PORT = process.env.PORT || 5000;
 

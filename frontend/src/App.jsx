@@ -22,6 +22,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import AdminBookings from './pages/admin/AdminBookings';
 import Profile from './pages/Profile';
+import BookingSuccess from './pages/BookingSuccess';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -59,6 +60,11 @@ function App() {
               <Route path="/payment" element={
                 <PrivateRoute>
                   <PaymentPage />
+                </PrivateRoute>
+              } />
+              <Route path="/booking-success" element={
+                <PrivateRoute>
+                  <BookingSuccess />
                 </PrivateRoute>
               } />
               {/* Manager Routes */}
