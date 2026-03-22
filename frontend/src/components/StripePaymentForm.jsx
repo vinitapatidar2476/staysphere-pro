@@ -20,10 +20,12 @@ const StripePaymentForm = ({ clientSecret, paymentIntentId, onSuccess, onError }
     console.log("Elements Instance:", elements);
 
     if (!stripe || !elements) {
+        if (!clientSecret) console.warn("SECURE GATEWAY WARN: Missing clientSecret in initialization node.");
         return (
             <div className="d-flex flex-column align-items-center justify-content-center p-5 text-white opacity-75">
-                <Spinner animation="border" variant="primary" className="mb-3" />
+                <Spinner animation="border" variant="primary" size="sm" className="mb-3" />
                 <div className="fw-900 ls-1 x-small uppercase">INITIALIZING SECURE GATEWAY...</div>
+                <div className="mt-4 x-small opacity-30 font-monospace">VERIFYING QUANTUM CRYPTOGRAPHY...</div>
             </div>
         );
     }

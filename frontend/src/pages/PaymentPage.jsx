@@ -8,8 +8,11 @@ import StripePaymentForm from "../components/StripePaymentForm";
 
 // Initialize Stripe
 const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-console.log("Stripe Key Detected:", STRIPE_KEY ? "YES (starts with " + STRIPE_KEY.substring(0, 8) + ")" : "NO");
-const stripePromise = loadStripe(STRIPE_KEY);
+if (!STRIPE_KEY) console.error("STRIPE INITIALIZATION ERROR: VITE_STRIPE_PUBLISHABLE_KEY is missing from ENV.");
+const stripePromise = loadStripe(STRIPE_KEY).catch(err => {
+    console.error("STRIPE PROMISE CRITICAL ERROR:", err);
+    return null;
+});
 
 const PaymentPage = () => {
     const { state } = useLocation();
