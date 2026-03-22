@@ -15,6 +15,19 @@ import api from '../services/api';
 const StripePaymentForm = ({ clientSecret, paymentIntentId, onSuccess, onError }) => {
     const stripe = useStripe();
     const elements = useElements();
+    
+    console.log("Stripe Instance:", stripe);
+    console.log("Elements Instance:", elements);
+
+    if (!stripe || !elements) {
+        return (
+            <div className="d-flex flex-column align-items-center justify-content-center p-5 text-white opacity-75">
+                <Spinner animation="border" variant="primary" className="mb-3" />
+                <div className="fw-900 ls-1 small">INITIALIZING SECURE GATEWAY...</div>
+            </div>
+        );
+    }
+
     const [processing, setProcessing] = useState(false);
     const [localError, setLocalError] = useState('');
 
@@ -69,7 +82,8 @@ const StripePaymentForm = ({ clientSecret, paymentIntentId, onSuccess, onError }
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '16px',
                 padding: '20px',
-                marginBottom: '20px'
+                marginBottom: '20px',
+
             }}>
                 <PaymentElement
                     options={{
@@ -142,9 +156,9 @@ const StripePaymentForm = ({ clientSecret, paymentIntentId, onSuccess, onError }
                 )}
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '14px', opacity: 0.5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '14px' }}>
                 <ShieldCheck size={13} style={{ color: '#6366f1' }} />
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700', letterSpacing: '0.5px' }}>
                     SECURED BY STRIPE · 256-BIT SSL ENCRYPTION
                 </span>
             </div>

@@ -114,7 +114,8 @@ const HotelDetail = () => {
             const res = await api.post('/bookings/create-payment-intent', {
                 hotelId: id,
                 ...bookingDetails,
-                totalAmount
+                totalAmount,
+                discount: discountActive
             });
 
             // ✅ Payment page pe redirect
@@ -170,7 +171,7 @@ const HotelDetail = () => {
                                     <div className="d-flex align-items-center gap-1 text-warning"><Star size={16} fill="currentColor" /> <Star size={16} fill="currentColor" /> <Star size={16} fill="currentColor" /> <Star size={16} fill="currentColor" /> <Star size={16} fill="currentColor" /></div>
                                 </div>
                                 <h1 className="display-2 fw-900 text-white mb-3 ls-tight">{hotel.name}</h1>
-                                <p className="fs-5 text-secondary d-flex align-items-center gap-2 mb-0 fw-bold opacity-75">
+                                <p className="fs-5 text-secondary d-flex align-items-center gap-2 mb-0 fw-bold">
                                     <MapPin size={22} className="text-primary" /> {hotel.address}, {hotel.city} SECTOR
                                 </p>
                             </div>
@@ -256,7 +257,7 @@ const HotelDetail = () => {
                                                 <Star size={12} className="me-1" fill="currentColor" /> {review.rating}.0
                                             </Badge>
                                         </div>
-                                        <p className="text-secondary mb-0 fw-bold opacity-75">{review.comment}</p>
+                                        <p className="text-secondary mb-0 fw-bold">{review.comment}</p>
                                     </div>
                                 )) : (
                                     <div className="text-center py-4 bg-white bg-opacity-5 rounded-4 border-white border-opacity-5 border-dashed">
