@@ -21,6 +21,7 @@ import ManagerBookings from './pages/manager/ManagerBookings';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import AdminBookings from './pages/admin/AdminBookings';
+import Profile from './pages/Profile';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -31,13 +32,18 @@ function App() {
         <ScrollToTop />
         <div className="d-flex flex-column min-vh-100">
           <NavigationBar />
-          <div className="flex-grow-1">
+          <main className="main-content-wrapper flex-grow-1">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/hotel/:id" element={<HotelDetail />} />
+              <Route path="/profile" element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              } />
 
               {/* Customer Routes */}
               <Route path="/customer/dashboard" element={
@@ -89,7 +95,7 @@ function App() {
                 </RoleRoute>
               } />
             </Routes>
-          </div>
+          </main>
           <Footer />
         </div>
       </Router>

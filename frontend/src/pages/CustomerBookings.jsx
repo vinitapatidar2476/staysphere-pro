@@ -106,7 +106,7 @@ const CustomerBookings = () => {
                                             <div className="d-flex justify-content-between align-items-start mb-4">
                                                 <div>
                                                     <Badge bg={booking.bookingStatus === 'confirmed' ? 'success' : 'danger'} className="bg-opacity-20 text-white border border-white border-opacity-10 px-3 py-1 rounded-pill x-small fw-bold ls-1 mb-2">
-                                                        {booking.bookingStatus.toUpperCase()}
+                                                        {(booking.bookingStatus || 'PENDING').toUpperCase()}
                                                     </Badge>
                                                     <h3 className="fw-900 text-white mb-1 ls-tight">{booking.hotelId?.name}</h3>
                                                     <div className="text-secondary small fw-bold d-flex align-items-center gap-2 opacity-75">
@@ -130,7 +130,7 @@ const CustomerBookings = () => {
                                                         </div>
                                                         <div className="d-flex align-items-center gap-3">
                                                             <div className="p-2 rounded-3" style={{ background: 'rgba(0,0,0,0.3)' }}><Clock size={16} className="text-secondary" /></div>
-                                                            <div className="text-white small fw-bold">ID: #{booking._id.slice(-8).toUpperCase()}</div>
+                                                            <div className="text-white small fw-bold">ID: #{(booking._id?.slice(-8) || 'UNIT').toUpperCase()}</div>
                                                         </div>
                                                     </div>
                                                 </Col>

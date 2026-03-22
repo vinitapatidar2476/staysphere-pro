@@ -148,7 +148,7 @@ const CustomerDashboard = () => {
                                                     <td className="py-4 text-center border-0">
                                                         <Badge bg={booking.bookingStatus === 'confirmed' ? 'success' : 'danger'} 
                                                                className="bg-opacity-20 text-white border border-white border-opacity-10 px-3 py-2 rounded-pill small fw-900 ls-1 shadow-sm">
-                                                            {booking.bookingStatus.toUpperCase()}
+                                                            {(booking.bookingStatus || 'PENDING').toUpperCase()}
                                                         </Badge>
                                                     </td>
                                                     <td className="py-4 pe-4 text-end border-0">
