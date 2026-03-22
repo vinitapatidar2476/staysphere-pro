@@ -13,7 +13,7 @@ import Register from './pages/Register';
 import HotelDetail from './pages/HotelDetail';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import CustomerBookings from './pages/CustomerBookings';
-
+import PaymentPage from './pages/PaymentPage';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ManageHotels from './pages/manager/ManageHotels';
 import ManagerBookings from './pages/manager/ManagerBookings';
@@ -50,7 +50,11 @@ function App() {
                   <CustomerBookings />
                 </PrivateRoute>
               } />
-
+              <Route path="/payment" element={
+                <PrivateRoute>
+                  <PaymentPage />
+                </PrivateRoute>
+              } />
               {/* Manager Routes */}
               <Route path="/manager/dashboard" element={
                 <RoleRoute roles={['manager', 'admin']}>

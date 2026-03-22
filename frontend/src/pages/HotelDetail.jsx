@@ -12,7 +12,7 @@ const HotelDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
-    
+
     const [hotel, setHotel] = useState(null);
     const [rooms, setRooms] = useState([]);
     const [reviews, setReviews] = useState([]);
@@ -110,19 +110,20 @@ const HotelDetail = () => {
         setPaymentStatus(null);
 
         try {
-            // Processing delay for realism
-            await new Promise(resolve => setTimeout(resolve, 2000));
 
-            const res = await api.post('/bookings/simulate-payment', {
+            const res = await api.post('/bookings/create-payment-intent', {
                 hotelId: id,
                 ...bookingDetails,
                 totalAmount
             });
 
-            if (res.data.success) {
-                setPaymentStatus('success');
-                setTimeout(() => navigate('/customer/dashboard'), 2000);
-            }
+            // ✅ Payment page pe redirect
+            navigate("/payment", {
+                state: {
+                    clientSecret: res.data.clientSecret,
+                    paymentIntentId: res.data.paymentIntentId
+                }
+            });
         } catch (err) {
             console.error('Simulation Error:', err);
             setPaymentStatus('failure');
@@ -152,8 +153,8 @@ const HotelDetail = () => {
             {/* Immersive Hero Section */}
             <div className="detail-hero position-relative mb-5">
                 <div className="hero-img-container" style={{ height: '70vh', position: 'relative', overflow: 'hidden' }}>
-                    <img 
-                        src={hotel.images?.[0] || 'https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?auto=format&fit=crop&w=1920&q=80'} 
+                    <img
+                        src={hotel.images?.[0] || 'https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?auto=format&fit=crop&w=1920&q=80'}
                         alt={hotel.name}
                         className="w-100 h-100 object-fit-cover"
                         style={{ filter: 'brightness(0.6)' }}
@@ -215,12 +216,12 @@ const HotelDetail = () => {
                                 <h3 className="fw-900 text-white mb-0">Geographic Deployment</h3>
                             </div>
                             <div className="overflow-hidden rounded-5 shadow-22xl border border-white border-opacity-10 position-relative" style={{ height: '450px' }}>
-                                <iframe 
-                                    width="100%" 
-                                    height="100%" 
-                                    style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.9) contrast(0.9)' }} 
-                                    loading="lazy" 
-                                    allowFullScreen 
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.9) contrast(0.9)' }}
+                                    loading="lazy"
+                                    allowFullScreen
                                     src={`https://maps.google.com/maps?q=${encodeURIComponent(hotel.address + ' ' + hotel.city)}&output=embed`}
                                 ></iframe>
                                 <div className="position-absolute top-0 start-0 w-100 h-100 pointer-events-none border border-white border-opacity-5 rounded-5" style={{ boxShadow: 'inset 0 0 100px rgba(0,0,0,0.5)' }}></div>
@@ -275,7 +276,7 @@ const HotelDetail = () => {
                                         <h4 className="fw-900 text-white mb-0">Secure Stay</h4>
                                         <div className="bg-primary bg-opacity-10 px-3 py-1 rounded-pill text-primary x-small fw-800 ls-1">AVAILABILITY: HIGH</div>
                                     </div>
-                                    
+
                                     {bookingError && <Alert variant="danger" className="glass-card border-danger text-white py-3 rounded-4 mb-4">{bookingError}</Alert>}
 
                                     <Form>
@@ -300,11 +301,11 @@ const HotelDetail = () => {
                                                     <Calendar size={12} className="text-primary" /> Check-in
                                                 </Form.Label>
                                                 <div className="position-relative">
-                                                    <Form.Control 
-                                                        type="date" 
-                                                        name="checkInDate" 
-                                                        onChange={handleBookingChange} 
-                                                        style={{ background: '#090f1a', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '14px', padding: '14px', fontWeight: 'bold', fontSize: '13px' }} 
+                                                    <Form.Control
+                                                        type="date"
+                                                        name="checkInDate"
+                                                        onChange={handleBookingChange}
+                                                        style={{ background: '#090f1a', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '14px', padding: '14px', fontWeight: 'bold', fontSize: '13px' }}
                                                     />
                                                 </div>
                                             </Col>
@@ -313,11 +314,11 @@ const HotelDetail = () => {
                                                     <Calendar size={12} className="text-primary" /> Check-out
                                                 </Form.Label>
                                                 <div className="position-relative">
-                                                    <Form.Control 
-                                                        type="date" 
-                                                        name="checkOutDate" 
-                                                        onChange={handleBookingChange} 
-                                                        style={{ background: '#090f1a', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '14px', padding: '14px', fontWeight: 'bold', fontSize: '13px' }} 
+                                                    <Form.Control
+                                                        type="date"
+                                                        name="checkOutDate"
+                                                        onChange={handleBookingChange}
+                                                        style={{ background: '#090f1a', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '14px', padding: '14px', fontWeight: 'bold', fontSize: '13px' }}
                                                     />
                                                 </div>
                                             </Col>
@@ -328,13 +329,13 @@ const HotelDetail = () => {
                                                 <Award size={14} className="text-primary" /> 🎁 EXCLUSIVE PROMOTION CODE
                                             </Form.Label>
                                             <div className="d-flex gap-3">
-                                                <Form.Control 
-                                                    type="text" 
+                                                <Form.Control
+                                                    type="text"
                                                     name="couponCode"
                                                     placeholder="e.g. STAYSPHERE10"
                                                     value={bookingDetails.couponCode}
                                                     onChange={handleBookingChange}
-                                                    style={{ background: '#0f172a', border: '1px solid rgba(99,102,241,0.5)', color: '#fff', borderRadius: '16px', padding: '15px' }} 
+                                                    style={{ background: '#0f172a', border: '1px solid rgba(99,102,241,0.5)', color: '#fff', borderRadius: '16px', padding: '15px' }}
                                                 />
                                                 <Button variant="primary" className="rounded-4 px-4 fw-900 ls-1 shadow-lg" onClick={handleApplyCoupon}>APPLY</Button>
                                             </div>
@@ -351,7 +352,7 @@ const HotelDetail = () => {
                                             <div>
                                                 <div className="text-white x-small fw-900 text-uppercase ls-1 opacity-75">Estimated Worth</div>
                                                 <h3 className="fw-900 text-white mb-0 mt-1 font-monospace">
-                                                    {discountActive > 0 && <span className="text-white text-decoration-line-through me-2 fs-6 opacity-30">₹{(totalAmount / (1-discountActive/100)).toLocaleString()}</span>}
+                                                    {discountActive > 0 && <span className="text-white text-decoration-line-through me-2 fs-6 opacity-30">₹{(totalAmount / (1 - discountActive / 100)).toLocaleString()}</span>}
                                                     ₹ {totalAmount.toLocaleString()}
                                                 </h3>
                                             </div>
@@ -359,7 +360,7 @@ const HotelDetail = () => {
                                         </div>
 
                                         {!user ? (
-                                            <Button 
+                                            <Button
                                                 as={Link}
                                                 to="/login"
                                                 className="w-100 py-4 rounded-pill fs-5 fw-900 ls-1 shadow-22xl d-flex align-items-center justify-content-center gap-3 transition-all transform hover-scale btn-warning text-dark border-0"
@@ -367,8 +368,8 @@ const HotelDetail = () => {
                                                 <Users size={24} /> LOGIN TO INITIALIZE
                                             </Button>
                                         ) : (
-                                            <Button 
-                                                onClick={handleBookNow} 
+                                            <Button
+                                                onClick={handleBookNow}
                                                 disabled={totalAmount <= 0 || submitting}
                                                 className={`w-100 py-4 rounded-pill fs-5 fw-900 ls-1 shadow-22xl d-flex align-items-center justify-content-center gap-3 transition-all transform hover-scale ${paymentStatus === 'success' ? 'btn-success' : paymentStatus === 'failure' ? 'btn-danger' : 'btn-primary'}`}
                                             >
@@ -383,7 +384,7 @@ const HotelDetail = () => {
                                                 )}
                                             </Button>
                                         )}
-                                        
+
                                         <p className="text-center text-secondary small mt-4 opacity-50 fw-bold">Payments secured by StaySphere Protocol.</p>
                                     </Form>
                                 </Card.Body>
